@@ -1,0 +1,97 @@
+import pygame
+
+def draw_board(the_board):
+    """ Draw a chess board with queens, as determined by the the_board. """
+
+    pygame.init()
+    colors = [(0,255,0), (0,0,255)] # Set up colors [red, black]
+
+    n = len(the_board) # This is an NxN chess board.
+    surface_size = 480 # Proposed physical surface size.
+    square_size = surface_size // n # sq_sz is length of a square.
+    surface_size = n * square_size # Adjust to exactly fit n squares.
+
+    # Create the surface of (width, height), and its window.
+    surface = pygame.display.set_mode((surface_size, surface_size))
+
+    ball = pygame.image.load("ball.png")
+
+    # Use an extra offset to centre the ball in its square.
+    # If the square is too small, offset becomes negative,
+    # but it will still be centered :-)
+    ball_offset = (square_size-ball.get_width()) // 2
+
+    all_sprites = [] # Keep a list of all sprites in the game
+
+    # Create a sprite object for each queen, and populate our list.
+    for (col, row) in enumerate(the_board):
+        a_queen = QueenSprite(ball, (col*square_size+ball_offset, row*square_size+ball_offset))
+        all_sprites.append(a_queen)
+
+    while True:
+
+        # Look for an event from keyboard, mouse, etc.
+        event = pygame.event.poll()
+        if event.type == pygame.QUIT:
+            break;
+
+        # Ask every sprite to update itself.
+        for sprite in all_sprites:
+            sprite.update()
+
+        # Draw a fresh background (a blank chess board)
+        for row in range(n): # Draw each row of the board.
+            color_index = row % 2 # Alternate starting color
+            for col in range(n): # Run through cols drawing squares
+                the_square = (col*square_size, row*square_size, square_size,
+                square_size)
+                surface.fill(colors[color_index], the_square)
+                # Now flip the color index for the next square
+                color_index = (color_index + 1) % 2
+
+       
+        # Ask every sprite to draw itself.
+        for sprite in all_sprites:
+            sprite.draw(surface)
+        
+        pygame.display.flip()
+
+
+    pygame.quit()
+
+
+
+gravity = 0.0001
+
+class QueenSprite:
+
+    def __init__(self, img, target_posn):
+        """ Create and initialize a queen for this
+        target position on the board
+        """
+        self.image = img
+        self.target_posn = target_posn
+        (x, y) = target_posn
+        self.posn = (x, 0) # Start ball at top of its column
+        self.y_velocity = 0 # with zero initi
+       
+    def update(self):
+        self.y_velocity += gravity
+        (x, y) = self.posn
+        new_y_pos = y + self.y_velocity
+        (target_x, target_y) = self.target_posn
+        dist_to_go = target_y - new_y_pos
+
+        if dist_to_go < 0:
+            self.y_velocity = -.65 * self.y_velocity
+            new_y_pos = target_y + dist_to_go
+
+        self.posn = (x, new_y_pos) # How far to our floor?
+        
+
+
+    def draw(self, target_surface):
+        target_surface.blit(self.image, self.posn)
+
+if __name__ == "__main__":
+    draw_board([0, 5, 3, 1, 6, 4, 2]) 
