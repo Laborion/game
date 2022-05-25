@@ -34,6 +34,17 @@ def draw_board(the_board):
         event = pygame.event.poll()
         if event.type == pygame.QUIT:
             break;
+        if event.type == pygame.KEYDOWN:
+            key = event.dict['key']
+            if key == 27:
+                break
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            posn_of_click = event.dict['pos']
+            for sprite in all_sprites:
+                if sprite.contains_point(posn_of_click):
+                    sprite.handle_click()
+                    break
 
         # Ask every sprite to update itself.
         for sprite in all_sprites:
@@ -74,7 +85,16 @@ class QueenSprite:
         (x, y) = target_posn
         self.posn = (x, 0) # Start ball at top of its column
         self.y_velocity = 0 # with zero initi
-       
+
+    def contains_point(self, point):
+        my_x, my_y = self.posn
+        x, y = point
+        my_width, my_height = self.image.get_width(), self.image.get_height()
+        return my_x < x < x+my_width and my_y < y < my_y+my_height
+
+    def handle_click(self):
+        self.y_velocity += -.3
+
     def update(self):
         self.y_velocity += gravity
         (x, y) = self.posn
